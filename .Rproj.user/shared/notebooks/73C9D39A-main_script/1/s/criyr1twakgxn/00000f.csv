@@ -1,0 +1,2 @@
+"0","# Merge the two data frames based on the 'Location' column"
+"0","merged_data <- merge(sales_summary, locations, by = ""Location"")"

@@ -1,0 +1,3 @@
+"0","# reading data and omitting NA's "
+"0","data <- read.csv(here('data', 'file.csv'))"
+"0","data <- na.omit(data)"

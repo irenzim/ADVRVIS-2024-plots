@@ -1,0 +1,2 @@
+"0","# Adding points to area plot "
+"0","area_plot + geom_point(stat = ""align"", position = ""stack"", size = 1.5, color = 'black', alpha = 0.3)"

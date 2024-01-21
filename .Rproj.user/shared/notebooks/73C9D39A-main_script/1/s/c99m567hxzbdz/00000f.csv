@@ -1,0 +1,10 @@
+"0","# Register your Google Maps API key"
+"0","register_google(key = 'AIzaSyDWP8zE8_OxlMiKZVqK5p_Lo2vVb8lSnPw')"
+"0","# Set a fixed zoom level (adjust as needed)"
+"0","# Get the map of Boston using qmap with Google Maps"
+"0","map<-get_map(location='united states', zoom=4, maptype = ""terrain"","
+"0","             source='google',color='color')"
+"2","[36mℹ[39m [3m[34m[3m[34m<]8;;https://maps.googleapis.com/maps/api/staticmap?center=united%20states&zoom=4&size=640x640&scale=2&maptype=terrain&language=en-EN&key=xxxhttps://maps.googleapis.com/maps/api/staticmap?center=united%20states&zoom=4&size=640x640&scale=2&maptype=terrain&language=en-EN&key=xxx]8;;>[34m[3m[39m[23m
+"
+"2","[36mℹ[39m [3m[34m[3m[34m<]8;;https://maps.googleapis.com/maps/api/geocode/json?address=united+states&key=xxxhttps://maps.googleapis.com/maps/api/geocode/json?address=united+states&key=xxx]8;;>[34m[3m[39m[23m
+"

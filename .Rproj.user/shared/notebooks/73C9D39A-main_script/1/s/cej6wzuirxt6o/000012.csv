@@ -1,0 +1,6 @@
+"0","# Barplot with respect to locations "
+"0","ggplot(agg_sales_data, aes(x = Month, y = total_sales, fill = Location, group = Location)) +"
+"0","  geom_bar(stat = ""identity"") +"
+"0","  labs(title = ""Bar Plot of Total Sales by Month"","
+"0","       x = ""Month"","
+"0","       y = ""Total Sales"")"

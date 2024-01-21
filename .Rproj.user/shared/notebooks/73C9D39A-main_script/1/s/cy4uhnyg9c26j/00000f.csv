@@ -1,0 +1,6 @@
+"0","# Get the base map"
+"0","map <- get_map(location = ""USA"", zoom = 4)"
+"2","[36mℹ[39m [3m[34m[3m[34m<]8;;https://maps.googleapis.com/maps/api/staticmap?center=USA&zoom=4&size=640x640&scale=2&maptype=terrain&language=en-EN&key=xxxhttps://maps.googleapis.com/maps/api/staticmap?center=USA&zoom=4&size=640x640&scale=2&maptype=terrain&language=en-EN&key=xxx]8;;>[34m[3m[39m[23m
+"
+"2","[36mℹ[39m [3m[34m[3m[34m<]8;;https://maps.googleapis.com/maps/api/geocode/json?address=USA&key=xxxhttps://maps.googleapis.com/maps/api/geocode/json?address=USA&key=xxx]8;;>[34m[3m[39m[23m
+"

@@ -1,0 +1,7 @@
+"0","ggplot(unique_customers, aes(x = Location, y = Tenure_Months, fill = Location)) +"
+"0","  geom_violin() +"
+"0","  geom_jitter(alpha = 0.6)+"
+"0","  labs(title = ""Box Plot of Tenure Months by Location"","
+"0","       x = ""Location"","
+"0","       y = ""Tenure Months"") +"
+"0","  theme_minimal()"

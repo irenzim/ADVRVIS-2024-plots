@@ -1,0 +1,4 @@
+"0","# Summarize sales by location"
+"0","sales_summary <- data %>% "
+"0","  group_by(Location) %>% "
+"0","  summarise(total_sales = sum(sale_amount))"

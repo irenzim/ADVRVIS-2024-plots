@@ -1,0 +1,4 @@
+"0","# Make a table with unqiue customers data "
+"0","unique_customers <- data %>%"
+"0","  distinct(CustomerID, .keep_all = TRUE) %>%"
+"0","  select(CustomerID, Tenure_Months, Location)"

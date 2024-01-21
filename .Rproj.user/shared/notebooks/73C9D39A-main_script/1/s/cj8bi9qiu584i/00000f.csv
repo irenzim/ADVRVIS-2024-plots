@@ -1,0 +1,6 @@
+"0","# Assuming you have a 'locations' data frame with lat and lon information"
+"0","locations <- data.frame("
+"0","  Location = c(""California"", ""Chicago"", ""New Jersey"", ""Washington DC"", ""New York""),"
+"0","  lat = c(36.7783, 41.8781, 40.7128, 38.8951, 40.7128),"
+"0","  lon = c(-119.4179, -87.6298, -74.0060, -77.0369, -74.0060)"
+"0",")"

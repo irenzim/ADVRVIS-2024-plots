@@ -1,0 +1,367 @@
+---
+title: "Online Shopping Store Visual Data Analysis"
+author: "Irena Zimovska & Yamini Kuntal"
+date: "2023-10-15"
+output: html_document
+---
+
+
+
+# 1. Upload packages & data
+
+
+```{r message=FALSE, warning=FALSE}
+# pacman handles installing and loading packages for us 
+if (!require('pacman')) install.packages('pacman')
+pacman::p_load(here, DescTools, tidyverse, ggplot2, dplyr, tidyr, scales, 
+               alluvial, viridis, ggmap, spData, sf, osmdata, formattable, 
+               webshot, htmltools)
+```
+
+
+```{r}
+# reading data and omitting NA's 
+data <- read.csv(here('data', 'file.csv'))
+data <- na.omit(data)
+```
+
+
+```{r}
+# Desc(data)
+```
+
+
+
+# 2. Population analysis
+
+Where do our customers come from? 
+
+
+```{r}
+# 5 locations
+unique(data$Location)
+# 16 categories 
+unique(data$Product_Category)
+
+#unique(data$Product_Description)
+```
+
+
+```{r}
+# Yamini, please include your code with plot here...
+```
+
+
+
+```{r}
+# Add column with sale amounts 
+data <- data %>% mutate(sale_amount = Quantity*Avg_Price)
+
+# Convert transaction dates into date format
+data$Transaction_Date <- as.Date(data$Transaction_Date, format = '%Y-%m-%d')
+
+# Convert month to ordered factor 
+data$Month <- factor(data$Month, ordered = TRUE)
+```
+
+
+
+
+```{r}
+# Register your Google Maps API key
+register_google(key = 'PASTE API KEY HERE')
+# Set a fixed zoom level (adjust as needed)
+# Get the map of Boston using qmap with Google Maps
+map<-get_map(location='united states', zoom=4, maptype = "terrain",
+             source='google',color='color')
+
+```
+
+
+```{r}
+# Assuming you have a 'locations' data frame with lat and lon information
+locations <- data.frame(
+  Location = c("California", "Chicago", "New Jersey", "Washington DC", "New York"),
+  lat = c(36.7783, 41.8781, 40.7128, 38.8951, 40.7128),
+  lon = c(-119.4179, -87.6298, -74.0060, -77.0369, -74.0060)
+)
+```
+
+
+```{r}
+# Summarize sales by location
+sales_summary <- data %>% 
+  group_by(Location) %>% 
+  summarise(total_sales = sum(sale_amount))
+```
+
+
+```{r}
+# Merge the two data frames based on the 'Location' column
+merged_data <- merge(sales_summary, locations, by = "Location")
+```
+
+
+```{r}
+# Get the base map
+map <- get_map(location = "USA", zoom = 4)
+```
+
+
+```{r}
+# Create the ggmap plot
+ggmap(map) +
+  geom_point(data = merged_data, aes(x = lon, y = lat, size = total_sales, fill = Location), , key_glyph='rect',alpha = 0.8, shape = 21, color = "black") +
+  scale_size_continuous(range = c(7, 20), guide = "legend", breaks = seq(50000, 120000, by = 25000)) +
+  scale_fill_manual(values = c("California" = "#27005D", "Chicago" = "#9400FF", "New Jersey" = "green", "Washington DC" = "red", "New York" = "#31E1F7")) + 
+  theme(
+    legend.key.size = unit(1.5, 'line'),
+    legend.text = element_text(size = 13),  # Adjust the size of legend text
+    legend.title = element_text(size = 15, face = 'bold')  # Adjust the size of legend title
+  ) + 
+  labs(x = "Longitude",
+       y = "Latitude")
+  
+```
+
+
+# 3. Sales dynamics 
+
+```{r}
+# Make a table with sales and columes per month 
+agg_sales_data <- data %>%
+  group_by(Month) %>%
+  summarize(total_sales = sum(sale_amount, na.rm = TRUE), 
+            total_volumes = sum(Quantity, na.rm = TRUE))
+``` 
+
+```{r}
+
+# Time series plot with total sales 
+agg_sales_data %>%
+  arrange(Month) %>%
+  ggplot(aes(x = Month, y = total_sales, group = 1)) +
+  geom_point(size = 4, alpha = 0.6, color = "darkblue") +
+  geom_line(size = 0.5, color = "grey") +
+  labs(title = "Total sales by month (thousand $)",
+       x = "Month",
+       y = "Total Sales") + 
+  theme_minimal() + 
+  scale_y_continuous(labels = scales::comma_format(scale = 1e-3)) +
+  theme_linedraw() +
+  theme(
+    text = element_text(size = 12),  # Adjust the font size
+    axis.title.x = element_text(size = 14),  # Adjust x-axis title font size
+    axis.title.y = element_text(size = 14),  # Adjust y-axis title font size
+    plot.title = element_text(size = 16)  # Adjust plot title font size
+  )
+```
+
+```{r}
+# Add location dimension to the table 
+agg_sales_data <- data %>%
+  group_by(Month, Location) %>%
+  summarize(total_sales = sum(sale_amount, na.rm = TRUE), 
+            total_volumes = sum(Quantity, na.rm = TRUE))
+```
+
+
+
+```{r}
+# Line plot with respect to locations 
+ggplot(agg_sales_data, aes(x = Month, y = total_sales, color = Location, group = Location)) +
+  geom_line(size = 0.6) +
+  geom_point(size = 3, alpha = 0.6) +
+  labs(title = "Total Sales and Sales in Each City by Month",
+       x = "Month",
+       y = "Total Sales",
+       color = "Location") +
+  theme_minimal()
+```
+
+
+```{r}
+# Barplot with respect to locations 
+ggplot(agg_sales_data, aes(x = Month, y = total_sales, fill = Location, group = Location)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Bar Plot of Total Sales by Month",
+       x = "Month",
+       y = "Total Sales")
+```
+
+
+```{r}
+# Area plot
+area_plot <- ggplot(agg_sales_data, aes(x = Month, y = total_sales, fill = Location, group = Location)) +
+  geom_area(position = 'stack', colour = "black", size = .2, alpha = .8) +
+  scale_fill_viridis_d(option = "D", direction = -1) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(title = "Area Plot of Sales in Each City by Month",
+       x = "Month",
+       y = "Total Sales") 
+```
+
+
+```{r}
+# Adding points to area plot 
+area_plot + geom_point(stat = "align", position = "stack", size = 1.5, color = 'black', alpha = 0.3)
+```
+
+# 5. Product Categories analysis
+
+## Table with formattable
+```{r}
+table <- data %>%
+  group_by(Product_Category) %>%
+  summarise(Sales_USD = round(sum(sale_amount))) %>%
+  arrange(desc(Sales_USD)) %>%  # Sorting by sales in descending order
+  mutate(
+    Percentage_of_Sales = round(Sales_USD / sum(Sales_USD) * 100),
+    Percentage_Cumulative = cumsum(Percentage_of_Sales)
+  )
+```
+
+```{r}
+export_formattable <- function(f, file, width = "100%", height = NULL, 
+                               background = "white", delay = 0.2)
+    {
+      w <- as.htmlwidget(f, width = width, height = height)
+      path <- html_print(w, background = background, viewer = NULL)
+      url <- paste0("file:///", gsub("\\\\", "/", normalizePath(path)))
+      webshot(url,
+              file = file,
+              selector = ".formattable_widget",
+              delay = delay)
+    }
+```
+
+
+```{r}
+sales_table <- formattable(table,
+                           align = c(rep("l", 4)), 
+                           list(`Product_Category` = formatter("span", style = ~ style(color = "black", font.weight = "bold")), 
+                                area(col = 3:4) ~ function(x) percent(x/100, digits = 0), 
+                                area(col = 2) ~ function(x) accounting(x),
+                                `Percentage_of_Sales` = color_bar("#79FCA7")
+                              
+                                )
+                           )
+
+```
+
+
+```{r}
+path <- html_print(as.htmlwidget(sales_table))
+url <- paste0("file:///", gsub("\\\\", "/", normalizePath(path)))
+webshot::webshot(url,
+              file = "sales.png",
+              selector = ".formattable_widget",
+              delay = 0.2)
+ 
+```
+
+## Bump plot of top products
+
+```{r}
+sales_by_products <- data %>% group_by(Month, Product_Category) %>%
+  summarize(total_sales = sum(sale_amount, na.rm = TRUE), 
+            total_volumes = sum(Quantity, na.rm = TRUE))
+```
+
+
+```{r}
+sales_by_products <- sales_by_products %>%
+  arrange(Month, desc(total_sales)) %>%
+  group_by(Month) %>%
+  mutate(rank = rank(desc(total_sales)))
+```
+
+```{r}
+ggplot(data = sales_by_products, aes(x = Month, y = rank, group = Product_Category, colour = Product_Category)) +
+  geom_line( size = 1.5, alpha = 0.6) +
+  geom_point(size = 2.3, shape = 21, fill = 'navyblue') +
+  geom_text(data = sales_by_products %>% filter(Month == 1),
+            aes(label = Product_Category) , angle = 30, hjust = 1, color = "#888888", size = 4) +
+  geom_text(data = sales_by_products %>% filter(Month == 12),
+            aes(label = Product_Category) , hjust = 0, color = "#888888", size = 4) +
+  scale_x_discrete(expand = c(.2, 1.5)) +
+  scale_y_reverse(breaks = seq(1, 16))
+```
+
+
+# 6. Tenure of customers 
+
+```{r}
+# Make a table with unqiue customers data 
+unique_customers <- data %>%
+  distinct(CustomerID, .keep_all = TRUE) %>%
+  select(CustomerID, Tenure_Months, Location)
+```
+
+
+```{r}
+# Add number of transactions per person 
+unique_customers <- unique_customers %>%
+  left_join(
+    data %>% group_by(CustomerID) %>% summarise(transaction_number = n()),
+    by = "CustomerID"
+  )
+```
+
+```{r}
+# Cut tenures into ranges
+unique_customers$Tenure_Range <- cut(
+  unique_customers$Tenure_Months,
+  breaks = c(-Inf, 12, 24, 36, 48, Inf),
+  labels = c("0-12", "12-24", "24-36", "36-48", "more than 48"),
+  include.lowest = TRUE
+)
+```
+
+```{r}
+ggplot(unique_customers, aes(x = Location, y = Tenure_Months, fill = Location)) +
+  geom_violin() +
+  geom_jitter(alpha = 0.6)+
+  labs(title = "Box Plot of Tenure Months by Location",
+       x = "Location",
+       y = "Tenure Months") +
+  theme_minimal()
+```
+
+
+```{r}
+library(ggridges)
+
+ggplot(unique_customers, aes(x = Tenure_Months, y = Location, group = Location, fill = stat(x))) +
+  geom_density_ridges_gradient(scale = 1, height = 0.1) +
+  scale_fill_viridis(option = "D")+
+  theme_ridges() + 
+  theme(legend.position = "none") + 
+  labs(title = 'Customer tenure densities by region')+ 
+  scale_y_discrete(expand = expansion(add = c(.3, 1.7)))
+```
+
+
+```{r}
+ggplot(unique_customers, aes(x = Tenure_Months, y = transaction_number)) +
+  geom_point(color = "steelblue", size = 1) +
+  labs(title = "Scatter Plot of Tenure vs Number of Transactions",
+       x = "Tenure (Months)",
+       y = "Number of Transactions") +
+  theme_minimal()
+```
+
+
+
+
+
+```{r}
+ggplot(unique_customers, aes(x = transaction_number, y = Tenure_Range, group = Tenure_Range, fill = stat(x))) +
+  geom_density_ridges_gradient(scale = 1, height = 0.1) +
+  scale_fill_viridis(option = "D")+
+  theme_ridges() + 
+  theme(legend.position = "none") + 
+  labs(title = 'Customer tenure densities by region')+ 
+  scale_y_discrete(expand = expansion(add = c(.3, 1.7)))
+```
+

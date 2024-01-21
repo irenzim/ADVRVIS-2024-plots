@@ -1,0 +1,5 @@
+"0","# pacman handles installing and loading packages for us "
+"0","if (!require('pacman')) install.packages('pacman')"
+"0","pacman::p_load(here, DescTools, tidyverse, ggplot2, dplyr, tidyr, scales, "
+"0","               alluvial, viridis, ggmap, spData, sf, osmdata, formattable, "
+"0","               webshot, htmltools)"

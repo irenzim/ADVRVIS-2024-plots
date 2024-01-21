@@ -1,0 +1,8 @@
+"0","# Add column with sale amounts "
+"0","data <- data %>% mutate(sale_amount = Quantity*Avg_Price)"
+"0",""
+"0","# Convert transaction dates into date format"
+"0","data$Transaction_Date <- as.Date(data$Transaction_Date, format = '%Y-%m-%d')"
+"0",""
+"0","# Convert month to ordered factor "
+"0","data$Month <- factor(data$Month, ordered = TRUE)"

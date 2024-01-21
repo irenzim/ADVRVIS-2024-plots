@@ -1,0 +1,8 @@
+"0","table <- data %>%"
+"0","  group_by(Product_Category) %>%"
+"0","  summarise(Sales_USD = round(sum(sale_amount))) %>%"
+"0","  arrange(desc(Sales_USD)) %>%  # Sorting by sales in descending order"
+"0","  mutate("
+"0","    Percentage_of_Sales = round(Sales_USD / sum(Sales_USD) * 100),"
+"0","    Percentage_Cumulative = cumsum(Percentage_of_Sales)"
+"0","  )"

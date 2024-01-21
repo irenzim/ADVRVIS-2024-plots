@@ -1,0 +1,4 @@
+"0","sales_by_products <- data %>% group_by(Month, Product_Category) %>%"
+"0","  summarize(total_sales = sum(sale_amount, na.rm = TRUE), "
+"0","            total_volumes = sum(Quantity, na.rm = TRUE))"
+"2","`summarise()` has grouped output by 'Month'. You can override using the `.groups` argument."
