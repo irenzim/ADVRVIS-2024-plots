@@ -2,4 +2,4 @@
 "0","if (!require('pacman')) install.packages('pacman')"
 "0","pacman::p_load(here, DescTools, tidyverse, ggplot2, dplyr, tidyr, scales, "
 "0","               alluvial, viridis, ggmap, spData, sf, osmdata, formattable, "
-"0","               webshot, htmltools)"
+"0","               webshot, htmltools, RColorBrewer)"

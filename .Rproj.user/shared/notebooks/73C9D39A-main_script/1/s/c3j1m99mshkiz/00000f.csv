@@ -1,7 +1,0 @@
-"0","# Cut tenures into ranges"
-"0","unique_customers$Tenure_Range <- cut("
-"0","  unique_customers$Tenure_Months,"
-"0","  breaks = c(-Inf, 12, 24, 36, 48, Inf),"
-"0","  labels = c(""0-12"", ""12-24"", ""24-36"", ""36-48"", ""more than 48""),"
-"0","  include.lowest = TRUE"
-"0",")"

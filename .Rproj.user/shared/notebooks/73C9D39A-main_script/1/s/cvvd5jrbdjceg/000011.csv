@@ -1,7 +1,0 @@
-"0","path <- html_print(as.htmlwidget(sales_table))"
-"0","url <- paste0(""file:///"", gsub(""\\\\"", ""/"", normalizePath(path)))"
-"0","webshot::webshot(url,"
-"0","              file = ""sales.png"","
-"0","              selector = "".formattable_widget"","
-"0","              delay = 0.2)"
-"0"," "

@@ -1,4 +1,0 @@
-"0","sales_by_products <- sales_by_products %>%"
-"0","  arrange(Month, desc(total_sales)) %>%"
-"0","  group_by(Month) %>%"
-"0","  mutate(rank = rank(desc(total_sales)))"

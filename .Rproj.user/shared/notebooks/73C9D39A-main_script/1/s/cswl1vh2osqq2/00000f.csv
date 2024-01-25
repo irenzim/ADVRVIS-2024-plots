@@ -1,5 +1,0 @@
-"0","# Make a table with sales and columes per month "
-"0","agg_sales_data <- data %>%"
-"0","  group_by(Month) %>%"
-"0","  summarize(total_sales = sum(sale_amount, na.rm = TRUE), "
-"0","            total_volumes = sum(Quantity, na.rm = TRUE))"

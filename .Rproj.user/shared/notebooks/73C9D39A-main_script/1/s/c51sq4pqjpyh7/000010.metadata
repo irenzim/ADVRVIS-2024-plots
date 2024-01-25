@@ -1,1 +1,0 @@
-{"height":432.6328800988875,"width":700.0,"size_behavior":0,"conditions":[[1,"Warning: `stat(x)` was deprecated in ggplot2 3.4.0.\nPlease use `after_stat(x)` instead."],[0,"Picking joint bandwidth of 4.32\n"]]}

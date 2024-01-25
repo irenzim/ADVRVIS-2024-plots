@@ -1,3 +1,5 @@
 "0","# reading data and omitting NA's "
 "0","data <- read.csv(here('data', 'file.csv'))"
+"0",""
+"0","# there are less than 1% of missings"
 "0","data <- na.omit(data)"

@@ -6,8 +6,7 @@ output: html_document
 ---
 
 
-
-# 1. Upload packages & data
+# I. Upload packages & data
 
 
 ```{r message=FALSE, warning=FALSE}
@@ -15,43 +14,139 @@ output: html_document
 if (!require('pacman')) install.packages('pacman')
 pacman::p_load(here, DescTools, tidyverse, ggplot2, dplyr, tidyr, scales, 
                alluvial, viridis, ggmap, spData, sf, osmdata, formattable, 
-               webshot, htmltools)
+               webshot, htmltools, RColorBrewer)
 ```
 
+```{r}
+# set numeric format
+options(scipen = 999)
+```
 
 ```{r}
 # reading data and omitting NA's 
 data <- read.csv(here('data', 'file.csv'))
+
+# there are less than 1% of missings
 data <- na.omit(data)
 ```
 
 
 ```{r}
+# desctools is a nice library for fast first glimpse into data 
 # Desc(data)
 ```
 
 
+```{r}
+# Bin "Tenure_Months" into specified ranges
+data$Tenure_Range <- cut(
+  data$Tenure_Months,
+  breaks = c(-Inf, 12, 24, 36, 48, Inf),
+  labels = c("0-12 months", "12-24 months", "24-36 months", "36-48 months", ">=48 months"),
+  include.lowest = TRUE
+)
+```
 
-# 2. Population analysis
+# II. Customer group analysis
 
-Where do our customers come from? 
-
+### 1. Barplot
 
 ```{r}
-# 5 locations
-unique(data$Location)
-# 16 categories 
-unique(data$Product_Category)
-
-#unique(data$Product_Description)
+# Prepare the data, calculating the proportions within each category
+data_summary <- data %>%
+  pivot_longer(cols = c(Gender, Tenure_Range, Location), 
+               names_to = "Category", values_to = "Value") %>%
+  count(Category, Value) %>%
+  group_by(Category) %>%
+  mutate(Proportion = n / sum(n)) %>%
+  ungroup() # Ungroup for correct percentage calculation
 ```
 
 
 ```{r}
-# Yamini, please include your code with plot here...
+# Modify the factor levels to match the order in the data
+data_summary$Value <- factor(data_summary$Value, levels = unique(data_summary$Value))
+
+# Create a label
+data_summary <- data_summary %>%
+  mutate(Category = factor(Category, levels = c("Gender", "Tenure_Range", "Location"))) %>%
+  mutate(Label = paste(Value,'-', scales::percent(Proportion, accuracy = 1)))
 ```
 
 
+```{r}
+# Plot
+ggplot(data_summary, aes(x = Category, y = Proportion, fill = Value, label = Label)) +
+  geom_bar(stat = "identity", position = "fill") +
+  geom_text(position = position_fill(vjust = 0.5), size = 3.5, color = "black", check_overlap = TRUE) +
+  scale_y_continuous(labels = percent_format()) +
+  theme_minimal() +
+  theme(
+    legend.position = "none", # Hide the legend
+    axis.ticks = element_blank(), # Hide axis ticks
+    axis.text.x = element_text(hjust = 1, face = "bold"), # Bold x-axis text
+    axis.text.y = element_text() # Ensure y-axis text is displayed
+  ) +
+  labs(
+    title = "Characteristics of customer group",
+    x = "", # Keep this blank to use the category names directly
+    y = "% of Customers"
+  )
+```
+
+
+
+```{r}
+# We can improve the look of the plot a bit
+# Setting color palletes for bars
+tenors_col <- RColorBrewer::brewer.pal(name="Purples", n =5)
+regions_col <- viridis_pal(begin = 0, end = 0.92, option = "D", direction = -1)(5)
+```
+
+```{r}
+# improved style 
+
+# Color palette
+color_palette <- c(
+  "#87CEEB", 
+  "#c3c6c7",
+  regions_col, 
+  tenors_col
+)
+
+# Example usage in a ggplot
+ggplot(data_summary, aes(x = Category, y = Proportion, fill = Value, label = Label)) +
+  geom_bar(stat = "identity", position = "fill", alpha = 0.8, color = 'navyblue', size = 0.3, width = 0.9) +
+  
+  geom_text(position = position_fill(vjust = 0.5), size = 4.5, color = "black", check_overlap = TRUE, fontface = "bold") +
+  
+  scale_y_continuous(labels = percent_format()) +
+  
+  scale_fill_manual(values = color_palette) + # Use the custom color palette
+  theme_minimal()+
+  theme(
+    legend.position = "none",
+    axis.ticks = element_blank(),
+    axis.text.x = element_text( hjust = 0.5, face = "bold", size = 14),
+    axis.text.y = element_blank(), # Hide y-axis text
+    plot.title = element_text(hjust = 0.5, face = 'bold', size = 16)
+  ) +
+  labs(
+    title = "Characteristics of customer group",
+    x = "",
+    y = "% of Customers"
+  ) 
+
+```
+
+```{r}
+ggsave('plot.jpg', last_plot())
+```
+
+
+
+
+### 2. Map plot
 
 ```{r}
 # Add column with sale amounts 
@@ -69,7 +164,7 @@ data$Month <- factor(data$Month, ordered = TRUE)
 
 ```{r}
 # Register your Google Maps API key
-register_google(key = 'PASTE API KEY HERE')
+register_google(key = 'AIzaSyDWP8zE8_OxlMiKZVqK5p_Lo2vVb8lSnPw')
 # Set a fixed zoom level (adjust as needed)
 # Get the map of Boston using qmap with Google Maps
 map<-get_map(location='united states', zoom=4, maptype = "terrain",
@@ -111,13 +206,14 @@ map <- get_map(location = "USA", zoom = 4)
 ```{r}
 # Create the ggmap plot
 ggmap(map) +
-  geom_point(data = merged_data, aes(x = lon, y = lat, size = total_sales, fill = Location), , key_glyph='rect',alpha = 0.8, shape = 21, color = "black") +
+  
+  geom_point(data = merged_data, aes(x = lon, y = lat, size = total_sales, fill = Location), , key_glyph='rect',alpha = 0.95, shape = 21, color = "black") +
+  
   scale_size_continuous(range = c(7, 20), guide = "legend", breaks = seq(50000, 120000, by = 25000)) +
-  scale_fill_manual(values = c("California" = "#27005D", "Chicago" = "#9400FF", "New Jersey" = "green", "Washington DC" = "red", "New York" = "#31E1F7")) + 
-  theme(
-    legend.key.size = unit(1.5, 'line'),
-    legend.text = element_text(size = 13),  # Adjust the size of legend text
-    legend.title = element_text(size = 15, face = 'bold')  # Adjust the size of legend title
+  
+  scale_fill_manual(values = regions_col) + 
+  
+  theme(legend.position = 'none'  # Adjust the size of legend title
   ) + 
   labs(x = "Longitude",
        y = "Latitude")
@@ -125,46 +221,20 @@ ggmap(map) +
 ```
 
 
-# 3. Sales dynamics 
-
 ```{r}
-# Make a table with sales and columes per month 
-agg_sales_data <- data %>%
-  group_by(Month) %>%
-  summarize(total_sales = sum(sale_amount, na.rm = TRUE), 
-            total_volumes = sum(Quantity, na.rm = TRUE))
-``` 
-
-```{r}
-
-# Time series plot with total sales 
-agg_sales_data %>%
-  arrange(Month) %>%
-  ggplot(aes(x = Month, y = total_sales, group = 1)) +
-  geom_point(size = 4, alpha = 0.6, color = "darkblue") +
-  geom_line(size = 0.5, color = "grey") +
-  labs(title = "Total sales by month (thousand $)",
-       x = "Month",
-       y = "Total Sales") + 
-  theme_minimal() + 
-  scale_y_continuous(labels = scales::comma_format(scale = 1e-3)) +
-  theme_linedraw() +
-  theme(
-    text = element_text(size = 12),  # Adjust the font size
-    axis.title.x = element_text(size = 14),  # Adjust x-axis title font size
-    axis.title.y = element_text(size = 14),  # Adjust y-axis title font size
-    plot.title = element_text(size = 16)  # Adjust plot title font size
-  )
+ggsave('plot.jpg', last_plot())
 ```
 
+# III. Sales dynamics 
+
+
 ```{r}
-# Add location dimension to the table 
+# Table with sales by month and region
 agg_sales_data <- data %>%
   group_by(Month, Location) %>%
   summarize(total_sales = sum(sale_amount, na.rm = TRUE), 
             total_volumes = sum(Quantity, na.rm = TRUE))
 ```
-
 
 
 ```{r}
@@ -181,6 +251,39 @@ ggplot(agg_sales_data, aes(x = Month, y = total_sales, color = Location, group =
 
 
 ```{r}
+# Line plot with both total sales and sales by location
+ggplot() + 
+  geom_point(data = data %>%
+    group_by(Month) %>%
+    summarize(total_sales = sum(sale_amount, na.rm = TRUE)),
+    aes(x = Month, y = total_sales), size = 3, alpha = 0.9, color = "#E9007F") +
+  
+  geom_line(data = data %>%
+    group_by(Month) %>%
+    summarize(total_sales = sum(sale_amount, na.rm = TRUE)),
+    aes(x = Month, y = total_sales, group = 1), size = 0.6, color = "#E9007F") + 
+  
+  geom_line(data = agg_sales_data, aes(x = Month, y = total_sales, group = Location, color = Location), size = 0.6, alpha = 0.6) +  # Sales by location lines
+  geom_point(data = agg_sales_data, aes(x = Month, y = total_sales, group = Location, color = Location), size = 2, alpha = 0.9) +  # Sales by location points
+  labs(title = "Monthly Sales: Total & Regions (thousands USD)",
+       x = "Month",
+       y = "Sales ($)",
+       color = "Location") +
+  theme_minimal() +  
+  theme(plot.title = element_text(hjust = 0.5, face = 'bold', size = 16))+
+  scale_y_continuous(labels = scales::comma_format(scale = 1e-3)) +
+  scale_color_manual(values = regions_col) +
+  guides(color = guide_legend(title = "Location"))  # Added a legend title
+
+
+```
+```{r}
+ggsave('plot.jpg', last_plot(), width = 10, height =6)
+```
+
+
+
+```{r}
 # Barplot with respect to locations 
 ggplot(agg_sales_data, aes(x = Month, y = total_sales, fill = Location, group = Location)) +
   geom_bar(stat = "identity") +
@@ -194,11 +297,15 @@ ggplot(agg_sales_data, aes(x = Month, y = total_sales, fill = Location, group = 
 # Area plot
 area_plot <- ggplot(agg_sales_data, aes(x = Month, y = total_sales, fill = Location, group = Location)) +
   geom_area(position = 'stack', colour = "black", size = .2, alpha = .8) +
-  scale_fill_viridis_d(option = "D", direction = -1) +
-  scale_y_continuous(labels = scales::percent) +
-  labs(title = "Area Plot of Sales in Each City by Month",
+  scale_fill_viridis_d(option = "D", direction = -1, begin = 0, end = 0.92) +
+  theme_minimal()+
+  labs(title = "Monthly Sales: Total & Regions (thousands USD)",
        x = "Month",
-       y = "Total Sales") 
+       y = "Total Sales") +
+  scale_y_continuous(labels = scales::comma_format(scale = 1e-3))+  
+  theme(plot.title = element_text(hjust = 0.5, face = 'bold', size = 16))
+
+
 ```
 
 
@@ -207,9 +314,14 @@ area_plot <- ggplot(agg_sales_data, aes(x = Month, y = total_sales, fill = Locat
 area_plot + geom_point(stat = "align", position = "stack", size = 1.5, color = 'black', alpha = 0.3)
 ```
 
-# 5. Product Categories analysis
+```{r}
+ggsave('plot.jpg', last_plot(), width = 9, height =6)
+```
 
-## Table with formattable
+
+# IV. Product Categories analysis
+
+### 1. Table with formattable - the distribution af revenue across product type
 ```{r}
 table <- data %>%
   group_by(Product_Category) %>%
@@ -260,7 +372,7 @@ webshot::webshot(url,
  
 ```
 
-## Bump plot of top products
+### 2. Bump plot with top products
 
 ```{r}
 sales_by_products <- data %>% group_by(Month, Product_Category) %>%
@@ -270,26 +382,38 @@ sales_by_products <- data %>% group_by(Month, Product_Category) %>%
 
 
 ```{r}
+# add ranks of sales by month
 sales_by_products <- sales_by_products %>%
   arrange(Month, desc(total_sales)) %>%
   group_by(Month) %>%
   mutate(rank = rank(desc(total_sales)))
 ```
 
+
 ```{r}
 ggplot(data = sales_by_products, aes(x = Month, y = rank, group = Product_Category, colour = Product_Category)) +
-  geom_line( size = 1.5, alpha = 0.6) +
-  geom_point(size = 2.3, shape = 21, fill = 'navyblue') +
+  geom_line( size = 2, alpha = 0.8) +
+  geom_point(size = 3, shape = 21, fill = 'white') +
   geom_text(data = sales_by_products %>% filter(Month == 1),
-            aes(label = Product_Category) , angle = 30, hjust = 1, color = "#888888", size = 4) +
+            aes(label = Product_Category, fontface = 'bold') , hjust = 1.1, color = "black", size = 4.5) +
   geom_text(data = sales_by_products %>% filter(Month == 12),
-            aes(label = Product_Category) , hjust = 0, color = "#888888", size = 4) +
-  scale_x_discrete(expand = c(.2, 1.5)) +
-  scale_y_reverse(breaks = seq(1, 16))
+            aes(label = Product_Category, fontface = 'bold') , hjust = -0.1, color = "black", size = 4.5) +
+  #scale_x_discrete(expand = c(0.5, 1.8)) +
+  scale_x_discrete(expand = c(0.3, 1)) +
+  scale_y_reverse(breaks = seq(1, 16))+ 
+  theme_light()+
+  theme(legend.position = 'none', 
+        plot.title = element_text(hjust = 0.5, face = 'bold', size = 16)) + 
+  labs(title = "Dynamics of top products by month")
+
+```
+
+```{r}
+ggsave('plot.jpg', last_plot(), width = 10, height =6)
 ```
 
 
-# 6. Tenure of customers 
+# V. Tenure of customers 
 
 ```{r}
 # Make a table with unqiue customers data 
@@ -334,34 +458,19 @@ library(ggridges)
 
 ggplot(unique_customers, aes(x = Tenure_Months, y = Location, group = Location, fill = stat(x))) +
   geom_density_ridges_gradient(scale = 1, height = 0.1) +
-  scale_fill_viridis(option = "D")+
-  theme_ridges() + 
+  scale_fill_gradient(low = brewer.pal(9, "Purples")[1], high = brewer.pal(9, "Purples")[9]) +
+  theme_minimal() + 
   theme(legend.position = "none") + 
   labs(title = 'Customer tenure densities by region')+ 
-  scale_y_discrete(expand = expansion(add = c(.3, 1.7)))
+  scale_y_discrete(expand = expansion(add = c(.3, 1.7))) + 
+  theme(plot.title = element_text(hjust = 0.5, face = 'bold', size = 16), 
+        axis.text.y = element_text(face = "bold", color = "black", size = 12))
 ```
 
 
 ```{r}
-ggplot(unique_customers, aes(x = Tenure_Months, y = transaction_number)) +
-  geom_point(color = "steelblue", size = 1) +
-  labs(title = "Scatter Plot of Tenure vs Number of Transactions",
-       x = "Tenure (Months)",
-       y = "Number of Transactions") +
-  theme_minimal()
+ggsave('plot.jpg', last_plot(), width = 9, height =6)
 ```
 
 
-
-
-
-```{r}
-ggplot(unique_customers, aes(x = transaction_number, y = Tenure_Range, group = Tenure_Range, fill = stat(x))) +
-  geom_density_ridges_gradient(scale = 1, height = 0.1) +
-  scale_fill_viridis(option = "D")+
-  theme_ridges() + 
-  theme(legend.position = "none") + 
-  labs(title = 'Customer tenure densities by region')+ 
-  scale_y_discrete(expand = expansion(add = c(.3, 1.7)))
-```
 

@@ -1,7 +1,0 @@
-"0","ggplot(unique_customers, aes(x = transaction_number, y = Tenure_Range, group = Tenure_Range, fill = stat(x))) +"
-"0","  geom_density_ridges_gradient(scale = 1, height = 0.1) +"
-"0","  scale_fill_viridis(option = ""D"")+"
-"0","  theme_ridges() + "
-"0","  theme(legend.position = ""none"") + "
-"0","  labs(title = 'Customer tenure densities by region')+ "
-"0","  scale_y_discrete(expand = expansion(add = c(.3, 1.7)))"

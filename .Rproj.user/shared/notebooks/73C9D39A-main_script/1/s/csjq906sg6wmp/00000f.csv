@@ -1,8 +1,0 @@
-"0","# Area plot"
-"0","area_plot <- ggplot(agg_sales_data, aes(x = Month, y = total_sales, fill = Location, group = Location)) +"
-"0","  geom_area(position = 'stack', colour = ""black"", size = .2, alpha = .8) +"
-"0","  scale_fill_viridis_d(option = ""D"", direction = -1) +"
-"0","  scale_y_continuous(labels = scales::percent) +"
-"0","  labs(title = ""Area Plot of Sales in Each City by Month"","
-"0","       x = ""Month"","
-"0","       y = ""Total Sales"") "

@@ -1,6 +1,0 @@
-"0","ggplot(unique_customers, aes(x = Tenure_Months, y = transaction_number)) +"
-"0","  geom_point(color = ""steelblue"", size = 1) +"
-"0","  labs(title = ""Scatter Plot of Tenure vs Number of Transactions"","
-"0","       x = ""Tenure (Months)"","
-"0","       y = ""Number of Transactions"") +"
-"0","  theme_minimal()"

@@ -1,6 +1,0 @@
-"0","# Add number of transactions per person "
-"0","unique_customers <- unique_customers %>%"
-"0","  left_join("
-"0","    data %>% group_by(CustomerID) %>% summarise(transaction_number = n()),"
-"0","    by = ""CustomerID"""
-"0","  )"
